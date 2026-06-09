@@ -36,17 +36,17 @@
 26. [Class Lifecycle](#26-class-lifecycle)
 27. [Function Components](#27-function-components)
 28. [Hooks](#28-hooks)
-29. [`useState`](#29-usestate)
-30. [`useEffect`](#30-useeffect)
-31. [`useMemo`](#31-usememo)
-32. [`useCallback`](#32-usecallback)
-33. [`useRef`](#33-useref)
-34. [Custom Hooks](#34-custom-hooks)
-35. [Class to Hooks Migration](#35-class-to-hooks-migration)
-36. [React Rendering and Reconciliation](#36-react-rendering-and-reconciliation)
-37. [Keys](#37-keys)
-38. [Common Re-render Bugs](#38-common-re-render-bugs)
-39. [Senior Interview Q&A](#39-senior-interview-qa)
+    - [useState](#usestate)
+    - [useEffect](#useeffect)
+    - [useMemo](#usememo)
+    - [useCallback](#usecallback)
+    - [useRef](#useref)
+    - [Custom Hooks](#custom-hooks)
+29. [Class to Hooks Migration](#29-class-to-hooks-migration)
+30. [React Rendering and Reconciliation](#30-react-rendering-and-reconciliation)
+31. [Keys](#31-keys)
+32. [Common Re-render Bugs](#32-common-re-render-bugs)
+33. [Senior Interview Q&A](#33-senior-interview-qa)
 
 ---
 
@@ -118,6 +118,8 @@ Scope decides where a variable is accessible.
 
 ## Global Scope
 
+Variables declared at the top level are accessible from anywhere in the file or module — any function can read them.
+
 ```js
 const appName = "React Native App";
 
@@ -127,6 +129,8 @@ function logApp() {
 ```
 
 ## Function Scope
+
+Variables declared inside a function are private to that function — they're destroyed when the function returns and can't be accessed from outside.
 
 ```js
 function calculateTotal() {
@@ -138,6 +142,8 @@ console.log(tax); // ReferenceError
 ```
 
 ## Block Scope
+
+`let` and `const` declared inside any `{}` block (if, for, while) are invisible outside those braces — unlike `var` which leaks out.
 
 ```js
 if (true) {
@@ -160,6 +166,8 @@ Hoisting means declarations are processed before code execution.
 
 ## `var` Hoisting
 
+JavaScript moves `var` declarations to the top of their function scope and initializes them as `undefined` before any code runs — so reading them early doesn't crash, it just returns `undefined`.
+
 ```js
 console.log(a); // undefined
 
@@ -178,6 +186,8 @@ a = 10;
 
 ## Function Declaration Hoisting
 
+Complete function declarations — both name and body — are fully hoisted, so you can call them before they appear in the file.
+
 ```js
 sayHello();
 
@@ -190,6 +200,8 @@ This works because function declarations are hoisted with their body.
 
 ## Function Expression
 
+Function expressions assigned to variables follow the variable's hoisting rules — the variable slot is hoisted, but the function value is not assigned until that line executes.
+
 ```js
 sayHello(); // TypeError or ReferenceError depending on var/let
 
@@ -199,6 +211,8 @@ const sayHello = function () {
 ```
 
 ## `let` and `const` Temporal Dead Zone
+
+`let` and `const` are hoisted but intentionally left uninitialized. Accessing them before their declaration line throws a `ReferenceError` — this gap is called the Temporal Dead Zone (TDZ).
 
 ```js
 console.log(name); // ReferenceError
@@ -441,7 +455,7 @@ Senior explanation:
 
 > In React, every render has its own props, state, and closures. Missing dependencies in hooks often create stale closure bugs.
 
-> 💡 **Another fix — use a ref to always read the latest value.** See Section 33 (`useRef`) for the `useLatest` pattern that avoids stale closures without adding deps.
+> 💡 **Another fix — use a ref to always read the latest value.** See the [`useRef` section](#useref) under Hooks for the `useLatest` pattern that avoids stale closures without adding deps.
 
 ---
 
@@ -875,6 +889,8 @@ const avatar = profile.avatarUrl ?? defaultAvatar;
 
 # 16. TypeScript for React Native
 
+TypeScript-typed props make your component self-documenting and catch wrong prop types at compile time rather than at runtime.
+
 Props:
 
 ```tsx
@@ -893,6 +909,8 @@ export function UserCard({ id, name, onPress }: UserCardProps) {
 }
 ```
 
+Pass a type to `useState<T>` so TypeScript knows exactly what your state holds, including union types like `User | null`.
+
 State:
 
 ```tsx
@@ -904,6 +922,8 @@ type User = {
 const [user, setUser] = useState<User | null>(null);
 ```
 
+Typing the navigation param list gives you type-safe `navigate()` calls and auto-completed `route.params` access across the whole app.
+
 Navigation params:
 
 ```ts
@@ -914,6 +934,8 @@ type RootStackParamList = {
   };
 };
 ```
+
+A generic response wrapper ensures all API endpoints return data in a consistent shape, including shared metadata like request IDs.
 
 API response:
 
@@ -939,6 +961,8 @@ const name = identity<string>("Nithin");
 const age = identity<number>(34);
 ```
 
+Wrap API data in a generic type so the same success/error shape is reused across every endpoint without duplication.
+
 API response:
 
 ```ts
@@ -955,6 +979,8 @@ type User = {
 type UserResponse = ApiResponse<User>;
 ```
 
+A single generic `request<T>` function handles all HTTP calls — the type parameter tells TypeScript what shape to expect from the response.
+
 Reusable API request:
 
 ```ts
@@ -970,6 +996,8 @@ async function request<T>(url: string): Promise<T> {
 
 const user = await request<User>("/users/123");
 ```
+
+Generic props let a single component accept any data type as items while remaining fully type-safe — no `any[]` needed.
 
 Generic list props:
 
@@ -1510,7 +1538,7 @@ Why rules exist?
 
 ---
 
-# 29. `useState`
+## useState
 
 Basic:
 
@@ -1544,7 +1572,7 @@ Why?
 
 ---
 
-# 30. `useEffect`
+## useEffect
 
 `useEffect` runs side effects after render.
 
@@ -1621,7 +1649,7 @@ Senior warning:
 
 ---
 
-# 31. `useMemo`
+## useMemo
 
 `useMemo` memoizes a computed value. It returns a **cached result** and only recomputes when dependencies change.
 
@@ -1651,7 +1679,7 @@ useMemo(() => fn, deps)
 
 ---
 
-# 32. `useCallback`
+## useCallback
 
 `useCallback` memoizes a **function reference**. It returns the same function object across renders unless dependencies change.
 
@@ -1677,7 +1705,7 @@ Key insight:
 
 ---
 
-# 33. `useRef`
+## useRef
 
 `useRef` stores a mutable value that **does not trigger a re-render** when changed. Think of it as a box that persists between renders.
 
@@ -1760,7 +1788,7 @@ Senior explanation:
 
 ---
 
-# 34. Custom Hooks
+## Custom Hooks
 
 Custom hooks extract reusable logic.
 
@@ -1839,7 +1867,7 @@ Senior explanation:
 
 ---
 
-# 35. Class to Hooks Migration
+# 29. Class to Hooks Migration
 
 Class:
 
@@ -1940,7 +1968,7 @@ Mapping:
 
 ---
 
-# 36. React Rendering and Reconciliation
+# 30. React Rendering and Reconciliation
 
 Render happens when:
 
@@ -1989,7 +2017,7 @@ const Child = React.memo(function Child() {
 
 ---
 
-# 37. Keys
+# 31. Keys
 
 Keys help React identify items.
 
@@ -2029,7 +2057,7 @@ Senior explanation:
 
 ---
 
-# 38. Common Re-render Bugs
+# 32. Common Re-render Bugs
 
 ## Inline object
 
@@ -2103,7 +2131,7 @@ const selectUserData = createSelector(
 
 ---
 
-# 39. Senior Interview Q&A
+# 33. Senior Interview Q&A
 
 ## Q1. Explain closures.
 
