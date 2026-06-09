@@ -8,45 +8,45 @@
 
 # Table of Contents
 
-1. How JavaScript Runs in React Native
-2. Execution Context
-3. Scope
-4. Hoisting
-5. `var` vs `let` vs `const`
-6. `==` vs `===`
-7. Closures
-8. Closures in React
-9. Event Loop
-10. Promise Internals
-11. Async/Await
-12. Error Handling
-13. Immutability
-14. Shallow Copy vs Deep Copy
-15. TypeScript Basics
-16. TypeScript for React Native
-17. Generics
-18. Utility Types
-19. Discriminated Unions
-20. React Mental Model
-21. JSX
-22. Props
-23. State
-24. Controlled Components
-25. Class Components
-26. Class Lifecycle
-27. Function Components
-28. Hooks
-29. `useState`
-30. `useEffect`
-31. `useMemo`
-32. `useCallback`
-33. `useRef`
-34. Custom Hooks
-35. Class to Hooks Migration
-36. React Rendering and Reconciliation
-37. Keys
-38. Common Re-render Bugs
-39. Senior Interview Q&A
+1. [How JavaScript Runs in React Native](#1-how-javascript-runs-in-react-native)
+2. [Execution Context](#2-execution-context)
+3. [Scope](#3-scope)
+4. [Hoisting](#4-hoisting)
+5. [`var` vs `let` vs `const`](#5-var-vs-let-vs-const)
+6. [`==` vs `===`](#6--vs-)
+7. [Closures](#7-closures)
+8. [Closures in React](#8-closures-in-react)
+9. [Event Loop](#9-event-loop)
+10. [Promise Internals](#10-promise-internals)
+11. [Async/Await](#11-asyncawait)
+12. [Error Handling](#12-error-handling)
+13. [Immutability](#13-immutability)
+14. [Shallow Copy vs Deep Copy](#14-shallow-copy-vs-deep-copy)
+15. [TypeScript Basics](#15-typescript-basics)
+16. [TypeScript for React Native](#16-typescript-for-react-native)
+17. [Generics](#17-generics)
+18. [Utility Types](#18-utility-types)
+19. [Discriminated Unions](#19-discriminated-unions)
+20. [React Mental Model](#20-react-mental-model)
+21. [JSX](#21-jsx)
+22. [Props](#22-props)
+23. [State](#23-state)
+24. [Controlled Components](#24-controlled-components)
+25. [Class Components](#25-class-components)
+26. [Class Lifecycle](#26-class-lifecycle)
+27. [Function Components](#27-function-components)
+28. [Hooks](#28-hooks)
+29. [`useState`](#29-usestate)
+30. [`useEffect`](#30-useeffect)
+31. [`useMemo`](#31-usememo)
+32. [`useCallback`](#32-usecallback)
+33. [`useRef`](#33-useref)
+34. [Custom Hooks](#34-custom-hooks)
+35. [Class to Hooks Migration](#35-class-to-hooks-migration)
+36. [React Rendering and Reconciliation](#36-react-rendering-and-reconciliation)
+37. [Keys](#37-keys)
+38. [Common Re-render Bugs](#38-common-re-render-bugs)
+39. [Senior Interview Q&A](#39-senior-interview-qa)
 
 ---
 

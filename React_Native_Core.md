@@ -8,28 +8,28 @@
 
 # Table of Contents
 
-1. React Native Mental Model
-2. React Native Architecture
-3. Old Bridge vs New Architecture
-4. Metro Bundler
-5. Hermes
-6. Core Components
-7. Styling and Layout
-8. Reusable Component Design
-9. Screen Architecture
-10. Navigation
-11. API Layer Design
-12. Auth Token Flow
-13. Redux From Scratch
-14. Redux Toolkit
-15. Redux Saga
-16. FlatList Internals
-17. Pagination
-18. Pull To Refresh
-19. Environment Configurations
-20. Accessibility
-21. Production Folder Structure
-22. Interview Questions
+1. [React Native Mental Model](#1-react-native-mental-model)
+2. [React Native Architecture](#2-react-native-architecture)
+3. [New Architecture (JSI, TurboModules, Fabric)](#3-new-architecture)
+4. [Metro Bundler](#4-metro-bundler)
+5. [Hermes](#5-hermes)
+6. [Core Components](#6-core-components)
+7. [Styling and Layout](#7-styling-and-layout)
+8. [Reusable Component Design](#8-reusable-component-design)
+9. [Screen Architecture](#9-screen-architecture)
+10. [Navigation](#10-navigation)
+11. [API Layer Design](#11-api-layer-design)
+12. [Auth Token Flow](#12-auth-token-flow)
+13. [Redux From Scratch](#13-redux-from-scratch)
+14. [Redux Toolkit](#14-redux-toolkit)
+15. [Redux Saga](#15-redux-saga)
+16. [FlatList Deep Dive](#16-flatlist-deep-dive)
+17. [Pagination](#17-pagination)
+18. [Pull To Refresh](#18-pull-to-refresh)
+19. [Environment Configurations](#19-environment-configurations)
+20. [Accessibility](#20-accessibility)
+21. [Production Folder Structure](#21-production-folder-structure)
+22. [Interview Questions](#22-interview-questions)
 
 ---
 

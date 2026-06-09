@@ -8,29 +8,29 @@
 
 # Table of Contents
 
-1. React Rendering Refresher
-2. Why Re-renders Happen
-3. useMemo vs useCallback
-4. React.memo
-5. useRef
-6. Rendering Debugging
-7. Memory Leaks
-8. RN Threading Model
-9. Animation Performance
-10. Image Performance
-11. Testing Strategy
-12. Jest
-13. React Native Testing Library
-14. Saga Testing
-15. Detox E2E
-16. Crash Debugging
-17. Production Logging
-18. Analytics SDK Design
-19. Feature Flags
-20. Mobile System Design - Instagram Feed
-21. Mobile System Design - Chat App
-22. Backend Mistakes That Hurt Mobile
-23. Senior Interview Q&A
+1. [React Rendering Refresher](#1-react-rendering-refresher)
+2. [Why Re-renders Happen](#2-why-re-renders-happen)
+3. [useMemo vs useCallback — When to Actually Use Them](#3-usememo-vs-usecallback--when-to-actually-use-them)
+4. [React.memo](#4-reactmemo)
+5. [useRef — Performance Use Cases](#5-useref--performance-use-cases)
+6. [Rendering Debugging](#6-rendering-debugging)
+7. [Memory Leaks](#7-memory-leaks)
+8. [RN Threading Model](#8-rn-threading-model)
+9. [Animation Performance](#9-animation-performance)
+10. [Image Performance](#10-image-performance)
+11. [Testing Strategy](#11-testing-strategy)
+12. [Jest](#12-jest)
+13. [React Native Testing Library](#13-react-native-testing-library)
+14. [Saga Testing](#14-saga-testing)
+15. [Detox E2E](#15-detox-e2e)
+16. [Crash Debugging](#16-crash-debugging)
+17. [Production Logging](#17-production-logging)
+18. [Analytics SDK Design](#18-analytics-sdk-design)
+19. [Feature Flags](#19-feature-flags)
+20. [Mobile System Design — Instagram Feed](#20-mobile-system-design---instagram-feed)
+21. [Mobile System Design — Chat App](#21-mobile-system-design---chat-app)
+22. [Backend Mistakes That Hurt Mobile](#22-backend-mistakes-that-hurt-mobile)
+23. [Senior Interview Q&A](#23-senior-interview-qa)
 
 ---
 
