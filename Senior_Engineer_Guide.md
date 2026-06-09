@@ -36,7 +36,9 @@
 
 # 1. React Rendering Refresher
 
-React render cycle:
+> 📖 **Foundation covered in Vol 1 §36** — this section focuses on the performance implications. For the conceptual model (what rendering IS and how reconciliation works), see Vol 1 Section 36.
+
+Render cycle quick recap:
 
 ```mermaid
 flowchart TD
@@ -47,13 +49,15 @@ flowchart TD
     E --> F[Native UI Updated]
 ```
 
-Important:
+Key performance insight:
 
-> A render does not always mean native UI changed. React can render, compare, and decide nothing needs to commit.
+> A render does not always mean native UI changed. React can render, compare, and decide nothing needs to commit. **Unnecessary renders cost CPU time but don’t always cause visual changes — the goal is to eliminate renders where the output would be identical.**
 
 ---
 
 # 2. Why Re-renders Happen
+
+> 📖 **Concept in Vol 1 §36** — this section is about diagnosing and fixing unnecessary re-renders in production.
 
 Common causes:
 
@@ -103,43 +107,59 @@ Senior warning:
 
 ---
 
-# 3. useMemo vs useCallback
+# 3. useMemo vs useCallback — When to Actually Use Them
 
-## useMemo
+> 📖 **Definitions and syntax in Vol 1 §31 & §32** — this section covers the decision: when do they actually help, and when are they wasted?
 
-Caches a value.
+## useMemo — When it helps
 
 ```tsx
+// ✅ Good: expensive filter on large list
 const filteredUsers = useMemo(() => {
   return users.filter(user => user.isActive);
 }, [users]);
+
+// ✅ Good: stable reference for memoized child
+const config = useMemo(() => ({ timeout: 3000 }), []);
+
+// ❌ Bad: cheap property access, no benefit
+const name = useMemo(() => user.name, [user.name]);
 ```
 
-## useCallback
-
-Caches a function reference.
+## useCallback — When it helps
 
 ```tsx
+// ✅ Good: passed to React.memo child, prevents re-render
 const onPressUser = useCallback((id: string) => {
   navigation.navigate("Profile", { userId: id });
 }, [navigation]);
+
+// ❌ Bad: child is not memoized, so useCallback doesn't prevent anything
+function Parent() {
+  const onClick = useCallback(() => doThing(), []); // pointless if Child isn't memoized
+  return <Child onClick={onClick} />;
+}
+```
+
+## Decision guide
+
+```txt
+Is the computation expensive OR is it a reference passed to React.memo child?
+  YES → Use useMemo / useCallback
+  NO  → Skip it. It adds overhead too.
 ```
 
 Relationship:
 
 ```tsx
 useCallback(fn, deps)
-```
-
-is similar to:
-
-```tsx
+// is the same as:
 useMemo(() => fn, deps)
 ```
 
 Interview answer:
 
-> useMemo is for memoizing computed values. useCallback is for memoizing function references, commonly passed to memoized children.
+> useMemo is for memoizing computed values. useCallback is for memoizing function references, commonly passed to memoized children. Do not use either indiscriminately — they have their own overhead.
 
 ---
 
@@ -180,56 +200,50 @@ Because function prop changes every render.
 
 ---
 
-# 5. useRef
+# 5. useRef — Performance Use Cases
+
+> 📖 **Full useRef reference in Vol 1 §33** — including timer IDs, TextInput access, and the `useLatest` stale-closure fix. This section focuses on useRef for performance debugging.
 
 `useRef` stores mutable value that does not trigger re-render.
+
+## Track render count (debugging tool)
 
 ```tsx
 const renderCount = useRef(0);
 
 renderCount.current += 1;
+
+// Log it:
+console.log(`Rendered ${renderCount.current} times`);
 ```
 
-Use cases:
-
-- Store timer ID
-- Access TextInput
-- Keep latest callback
-- Avoid stale closure
-
-Example:
+## Store latest callback — avoid stale closure without adding deps
 
 ```tsx
-const timerRef = useRef<NodeJS.Timeout | null>(null);
+const callbackRef = useRef(onPress);
 
 useEffect(() => {
-  timerRef.current = setInterval(() => {
-    console.log("tick");
+  callbackRef.current = onPress;
+}, [onPress]);
+
+useEffect(() => {
+  const id = setInterval(() => {
+    callbackRef.current(); // always fresh
   }, 1000);
 
-  return () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-  };
-}, []);
+  return () => clearInterval(id);
+}, []); // no stale closure risk
 ```
 
-TextInput ref:
+Senior note:
 
-```tsx
-const inputRef = useRef<TextInput>(null);
-
-<Button title="Focus" onPress={() => inputRef.current?.focus()} />
-
-<TextInput ref={inputRef} />
-```
+> Refs are the escape hatch from React’s immutable render model. Useful for tracking values across renders without triggering new renders.
 
 ---
 
 # 6. Rendering Debugging
 
-Simple render logger:
+Simple render logger custom hook:
 
 ```tsx
 function useRenderLogger(name: string) {
@@ -239,8 +253,11 @@ function useRenderLogger(name: string) {
 
   useEffect(() => {
     console.log(`${name} rendered ${count.current} times`);
-  });
+  }); // ← no dep array: intentional! Runs after EVERY render to log every single time.
 }
+```
+
+> ⚠️ **Why no dependency array?** This is intentional. An empty `[]` would only log on mount. By omitting the array entirely, the effect runs after *every* render — which is exactly what a render logger should do.
 ```
 
 Usage:
@@ -672,12 +689,21 @@ Tap login
 Verify home screen
 ```
 
-Test:
+Test with proper setup and teardown:
 
 ```ts
 describe("Login", () => {
   beforeAll(async () => {
-    await device.launchApp();
+    await device.launchApp({ newInstance: true });
+  });
+
+  afterAll(async () => {
+    await device.terminateApp();
+  });
+
+  beforeEach(async () => {
+    // Reset to clean state before each test
+    await device.reloadReactNative();
   });
 
   it("logs in successfully", async () => {
@@ -687,12 +713,22 @@ describe("Login", () => {
 
     await expect(element(by.id("homeScreen"))).toBeVisible();
   });
+
+  it("shows error for wrong password", async () => {
+    await element(by.id("emailInput")).typeText("test@example.com");
+    await element(by.id("passwordInput")).typeText("wrongpassword");
+    await element(by.id("loginButton")).tap();
+
+    await expect(element(by.id("loginError"))).toBeVisible();
+  });
 });
 ```
 
 Senior note:
 
 > E2E tests are expensive. Use them for critical business flows only.
+>
+> Use `beforeEach` + `device.reloadReactNative()` to reset state between tests. Use `beforeAll` for one-time setup (launching app) and `afterAll` for cleanup. Never rely on test order — each test should be independent.
 
 ---
 

@@ -441,6 +441,8 @@ Senior explanation:
 
 > In React, every render has its own props, state, and closures. Missing dependencies in hooks often create stale closure bugs.
 
+> 💡 **Another fix — use a ref to always read the latest value.** See Section 33 (`useRef`) for the `useLatest` pattern that avoids stale closures without adding deps.
+
 ---
 
 # 9. Event Loop
@@ -1177,19 +1179,32 @@ JSX with list:
 ))}
 ```
 
-Important:
+Important gotcha — falsy `0` renders as text:
 
 ```tsx
 {count && <Text>{count}</Text>}
 ```
 
-If `count` is `0`, React may render `0`.
+**Why this is dangerous**: `&&` evaluates left side first. If `count` is `0`, JavaScript treats it as falsy and short-circuits — but instead of rendering nothing, React receives the value `0` itself and renders it as the text `"0"` on screen.
 
-Better:
+```txt
+count = 0  →  0 && <Text>0</Text>  →  renders: 0  ← unexpected!
+count = 5  →  5 && <Text>5</Text>  →  renders: <Text>5</Text>  ← correct
+```
+
+Always use an explicit boolean condition:
 
 ```tsx
 {count > 0 && <Text>{count}</Text>}
 ```
+
+Or convert to boolean explicitly:
+
+```tsx
+{!!count && <Text>{count}</Text>}
+```
+
+This applies to any number, empty string, or `NaN` value — not just `0`.
 
 ---
 
@@ -1608,7 +1623,15 @@ Senior warning:
 
 # 31. `useMemo`
 
-`useMemo` memoizes a computed value.
+`useMemo` memoizes a computed value. It returns a **cached result** and only recomputes when dependencies change.
+
+Syntax:
+
+```tsx
+const value = useMemo(() => expensiveCalculation(), [dep1, dep2]);
+```
+
+Example:
 
 ```tsx
 const activeUsers = useMemo(() => {
@@ -1616,33 +1639,29 @@ const activeUsers = useMemo(() => {
 }, [users]);
 ```
 
-Good use case:
+Relationship to `useCallback`:
 
 ```tsx
-const sortedTransactions = useMemo(() => {
-  return [...transactions].sort((a, b) => {
-    return b.date.localeCompare(a.date);
-  });
-}, [transactions]);
+// These are equivalent:
+useCallback(fn, deps)
+useMemo(() => fn, deps)
 ```
 
-Bad use case:
-
-```tsx
-const name = useMemo(() => user.name, [user.name]);
-```
-
-This is unnecessary.
-
-Senior explanation:
-
-> Use `useMemo` for expensive calculations or stable object references passed to memoized children.
+> 📖 **When to use `useMemo` vs when NOT to** — See **Vol 3 §3** for the full performance decision guide.
 
 ---
 
 # 32. `useCallback`
 
-`useCallback` memoizes a function reference.
+`useCallback` memoizes a **function reference**. It returns the same function object across renders unless dependencies change.
+
+Syntax:
+
+```tsx
+const fn = useCallback(() => doSomething(), [dep1, dep2]);
+```
+
+Example:
 
 ```tsx
 const onPressUser = useCallback((userId: string) => {
@@ -1650,49 +1669,22 @@ const onPressUser = useCallback((userId: string) => {
 }, [navigation]);
 ```
 
-Why useful?
+Key insight:
 
-```tsx
-const UserRow = React.memo(function UserRow({ user, onPress }) {
-  return (
-    <Pressable onPress={() => onPress(user.id)}>
-      <Text>{user.name}</Text>
-    </Pressable>
-  );
-});
-```
+> `useCallback` does not make the function run faster. It preserves **reference identity** so memoized child components don't re-render unnecessarily.
 
-Parent:
-
-```tsx
-const onPressUser = useCallback((id: string) => {
-  openUser(id);
-}, [openUser]);
-
-<FlatList
-  data={users}
-  renderItem={({ item }) => (
-    <UserRow user={item} onPress={onPressUser} />
-  )}
-/>
-```
-
-Without `useCallback`, `onPressUser` may be a new reference every render.
-
-Senior explanation:
-
-> `useCallback` does not make the function faster. It preserves the reference identity.
+> 📖 **When to use `useCallback` vs when NOT to** — See **Vol 3 §3** for the full performance decision guide with React.memo context.
 
 ---
 
 # 33. `useRef`
 
-`useRef` stores mutable value without causing re-render.
+`useRef` stores a mutable value that **does not trigger a re-render** when changed. Think of it as a box that persists between renders.
 
 ```tsx
 const countRef = useRef(0);
 
-countRef.current += 1;
+countRef.current += 1; // no re-render
 ```
 
 Use cases:
@@ -1728,7 +1720,9 @@ useEffect(() => {
 }, []);
 ```
 
-## Avoid stale callback
+## `useLatest` — fix stale closures without adding deps
+
+This is a clean pattern for always reading the latest version of a callback inside an effect:
 
 ```tsx
 function useLatest<T>(value: T) {
@@ -1742,9 +1736,27 @@ function useLatest<T>(value: T) {
 }
 ```
 
+Usage:
+
+```tsx
+const onMessageRef = useLatest(onMessage);
+
+useEffect(() => {
+  const id = setInterval(() => {
+    onMessageRef.current(); // always latest, no stale closure
+  }, 1000);
+
+  return () => clearInterval(id);
+}, []); // safe to leave empty
+```
+
+> 📖 See **Section 8** (Closures in React) for where stale closures come from.
+
 Senior explanation:
 
-> Updating a ref does not trigger render. Use it for mutable values that do not affect UI.
+> Updating a ref does not trigger render. Use it for mutable values that do not affect UI directly — timer IDs, DOM/native refs, or always-fresh callbacks.
+
+> 📖 **useRef in performance debugging** — See **Vol 3 §5** for the render-count tracking pattern.
 
 ---
 
@@ -1849,11 +1861,26 @@ class UserScreen extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    this.cancelRequest();
+    // Cancel any pending async work
+    this.mounted = false;
   }
+
+  mounted = true;
 
   loadUser = async () => {
     this.setState({ isLoading: true });
+
+    try {
+      const user = await userService.getUser(this.props.userId);
+
+      if (this.mounted) {
+        this.setState({ user, isLoading: false });
+      }
+    } catch {
+      if (this.mounted) {
+        this.setState({ isLoading: false });
+      }
+    }
   };
 
   render() {

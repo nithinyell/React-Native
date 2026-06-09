@@ -147,6 +147,12 @@ Benefits:
 
 ---
 
+**Interview summary for New Architecture:**
+
+> The old architecture serialized all JS-to-native communication as JSON through an async bridge. This caused bottlenecks under heavy traffic. The new architecture introduces JSI (JavaScript Interface), which lets JS call C++ native code directly without serialization. TurboModules lazy-load native modules only when needed, improving startup time. Fabric is the new renderer that supports synchronous layout and concurrent React features.
+
+---
+
 # 4. Metro Bundler
 
 Metro bundles JavaScript for React Native.
@@ -521,6 +527,8 @@ API Client
 
 API client:
 
+> 📖 **Note**: Vol 1 §12 shows a simplified error-handling version of this wrapper. This is the full production version with method support, auth headers, and body serialization.
+
 ```ts
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
@@ -595,6 +603,64 @@ export async function saveTokens(accessToken: string, refreshToken: string) {
     accessToken,
     refreshToken,
   }));
+}
+```
+
+## Token Refresh Interceptor
+
+When a request gets a `401`, pause, refresh the token once, then retry:
+
+```ts
+let isRefreshing = false;
+let pendingRequests: (() => void)[] = [];
+
+export async function requestWithAuth<T>(
+  path: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const tokens = await getTokens();
+
+  const response = await fetch(`${Config.API_URL}${path}`, {
+    method: options.method ?? "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${tokens.accessToken}`,
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+
+  if (response.status === 401) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+
+      try {
+        const newTokens = await authService.refresh(tokens.refreshToken);
+        await saveTokens(newTokens.accessToken, newTokens.refreshToken);
+
+        // Replay all queued requests
+        pendingRequests.forEach(resolve => resolve());
+        pendingRequests = [];
+      } catch {
+        // Refresh failed — logout user
+        await authService.logout();
+        throw new Error("Session expired");
+      } finally {
+        isRefreshing = false;
+      }
+    } else {
+      // Another refresh already in-flight — queue and retry
+      await new Promise<void>(resolve => pendingRequests.push(resolve));
+    }
+
+    // Retry original request with new token
+    return requestWithAuth<T>(path, options);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+
+  return response.json();
 }
 ```
 
