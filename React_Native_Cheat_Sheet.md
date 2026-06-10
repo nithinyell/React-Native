@@ -1,5 +1,7 @@
 # React Native Senior Engineer — Cheat Sheet
 
+[must read](https://www.greatfrontend.com/blog/100-react-interview-questions-straight-from-ex-interviewers)
+
 > Single-page quick reference across all 3 volumes. Use this for last-minute review before interviews.
 
 ---
